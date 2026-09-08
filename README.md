@@ -1,6 +1,6 @@
 # Rental App — Final Project
 
-Back-end приложение для системы аренды жилья на Django + DRF.
+Back-end приложение для системы аренды жилья на Django + DRF
 
 # Стек
 - Python 3.14

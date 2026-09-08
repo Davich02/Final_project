@@ -46,6 +46,8 @@ INSTALLED_APPS = [
     'apps.bookings',
     'apps.reviews',
     'apps.analytics',
+    'apps.core',
+    'djmoney',
 ]
 
 MIDDLEWARE = [
