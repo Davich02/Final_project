@@ -9,7 +9,8 @@ class UniqueID(models.Model):
 
     class Meta:
         abstract = True
-        
+
+# статусы бронирования
 class BookingStatus(models.TextChoices):
     PENDING = 'pending', _('Pending')
     CONFIRMED = 'confirmed', _('Confirmed')
@@ -21,7 +22,7 @@ class BookingStatus(models.TextChoices):
 class TimeStampedModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    deleted_at = models.DateTimeField(null=True, blank=True)
+    deleted_at = models.DateTimeField(null=True, blank=True) # soft delete method
 
     @property
     def is_deleted(self):

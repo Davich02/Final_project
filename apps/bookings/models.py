@@ -20,10 +20,12 @@ class Booking(UniqueID,TimeStampedModel):
     all_objects = models.Manager()
 
     def save(self, *args, **kwargs):
+        #ручной запуск 
         self.full_clean()
         super().save(*args, **kwargs)
 
     def clean(self):
+        #кастомная проверка дат бронирования
         super().clean()
         if self.date_start and self.date_end and self.date_end <= self.date_start:
             raise ValidationError({'date_end': 'Дата выезда должна быть позже даты заезда.'})

@@ -10,6 +10,7 @@ class BookingSerializer(serializers.ModelSerializer):
         read_only_fields = ['tenant', 'status']
 
     def validate(self, attrs):
+        # валидация на пересечение дат
         listing = attrs.get('listing')
         date_start = attrs.get('date_start')
         date_end = attrs.get('date_end')
