@@ -1,13 +1,13 @@
 from django.db import models
 from apps.users.models import User
-from apps.core.models import TimeStampedModel
+from apps.core.models import TimeStampedModel , UniqueID
 from djmoney.models.fields import MoneyField
 from apps.core.managers import SoftDeleteManager
 from django.utils import timezone
 from djmoney.models.validators import MinMoneyValidator
 # Create your models here.
 
-class Listing(TimeStampedModel):
+class Listing(UniqueID,TimeStampedModel):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='listings')
     title = models.CharField(max_length=200)
     description = models.TextField(max_length=1000)
@@ -37,7 +37,7 @@ class Listing(TimeStampedModel):
 
 
 
-class ListingPhoto(TimeStampedModel):
+class ListingPhoto(UniqueID,TimeStampedModel):
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name='photos')
     image = models.ImageField(upload_to='listings/photos/')
 
