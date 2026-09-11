@@ -15,14 +15,14 @@ class BookingSerializer(serializers.ModelSerializer):
         date_start = attrs.get('date_start')
         date_end = attrs.get('date_end')
 
-        overlapping = Booking.objects.filter(
+        doubling = Booking.objects.filter(
             listing=listing,
             status__in=[BookingStatus.PENDING, BookingStatus.CONFIRMED],
             date_start__lt=date_end,
             date_end__gt=date_start,
         ).exists()
 
-        if overlapping:
+        if doubling:
             raise serializers.ValidationError('Это жильё уже забронировано на выбранные даты.')
 
         return attrs

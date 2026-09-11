@@ -41,3 +41,7 @@ class Booking(UniqueID,TimeStampedModel):
         ordering = ['-date_start']
         verbose_name = 'Бронирование'
         verbose_name_plural = 'Бронирования'
+        indexes = [
+            models.Index(fields=['status']),
+            models.Index(fields=['listing', 'date_start', 'date_end']),
+        ]

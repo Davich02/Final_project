@@ -32,6 +32,13 @@ class Listing(UniqueID,TimeStampedModel):
         ordering = ['-created_at']
         verbose_name = 'Объявление'
         verbose_name_plural = 'Объявления'
+        indexes = [
+            models.Index(fields=['is_active']),
+            models.Index(fields=['location']),
+            models.Index(fields=['price']),
+            models.Index(fields=['rooms']),
+            models.Index(fields=['housing_type']),
+        ]
 
 
 
