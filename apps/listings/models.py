@@ -1,6 +1,6 @@
 from django.db import models
-from apps.users.models import User
-from apps.core.models import TimeStampedModel , UniqueID
+from django.conf import settings
+from apps.core.models import TimeStampedModel , UniqueID,HousingType
 from djmoney.models.fields import MoneyField
 from apps.core.managers import SoftDeleteManager
 from django.utils import timezone
@@ -8,15 +8,19 @@ from djmoney.models.validators import MinMoneyValidator
 # Create your models here.
 
 class Listing(UniqueID,TimeStampedModel):
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='listings')
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='listings')
     title = models.CharField(max_length=200)
     description = models.TextField(max_length=1000)
-    location = models.CharField(max_length=200)
+    country = models.CharField(max_length=100, default='Germany')
+    city = models.CharField(max_length=100)
+    district = models.CharField(max_length=100, blank=True)
+    street = models.CharField(max_length=200)
+    house_number = models.CharField(max_length=20)
     price = MoneyField(max_digits=10, decimal_places=2, default_currency='EUR',
                        validators=[MinMoneyValidator(0)])
     rooms = models.PositiveSmallIntegerField()
     is_active = models.BooleanField(default=True)
-    housing_type = models.CharField(max_length=50)
+    housing_type = models.CharField(max_length=20, choices=HousingType, default=HousingType.APARTMENT)
 
     objects = SoftDeleteManager()
     all_objects = models.Manager()
@@ -33,24 +37,23 @@ class Listing(UniqueID,TimeStampedModel):
         verbose_name = 'Объявление'
         verbose_name_plural = 'Объявления'
         indexes = [
-            models.Index(fields=['is_active']),
-            models.Index(fields=['location']),
+            models.Index(fields=['city']),
             models.Index(fields=['price']),
             models.Index(fields=['rooms']),
-            models.Index(fields=['housing_type']),
         ]
 
 
 
 
-
-class ListingPhoto(UniqueID,TimeStampedModel):
+class ListingPhoto(UniqueID, TimeStampedModel):
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name='photos')
     image = models.ImageField(upload_to='listings/photos/')
+    position = models.PositiveSmallIntegerField(default=0)
 
     def __str__(self):
         return f"Photo for {self.listing.title}"
 
     class Meta:
+        ordering = ['position']
         verbose_name = 'Фото объявления'
         verbose_name_plural = 'Фото объявлений'

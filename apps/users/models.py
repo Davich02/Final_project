@@ -1,6 +1,12 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, UserManager
+from django.core.validators import RegexValidator
 # Create your models here.
+
+phone_validator = RegexValidator(
+    regex=r'^\+?\d{9,15}$',
+    message='Введите корректный номер телефона.'
+)
 
 
 class CustomUserManager(UserManager):
@@ -23,6 +29,8 @@ class CustomUserManager(UserManager):
 class User(AbstractUser):
     username = None
     email = models.EmailField(unique=True)
+    phone = models.CharField(max_length=16, validators=[phone_validator], blank=True)
+
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []

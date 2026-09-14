@@ -18,6 +18,12 @@ class BookingStatus(models.TextChoices):
     CANCELLED = 'cancelled', _('Cancelled')
     COMPLETED = 'completed', _('Completed')
 
+# чойсы типа жилья
+class HousingType(models.TextChoices):
+    APARTMENT = 'apartment', _('Apartment')
+    HOUSE = 'house', _('House')
+    STUDIO = 'studio', _('Studio')
+    ROOM = 'room', _('Room')
 
 class TimeStampedModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)

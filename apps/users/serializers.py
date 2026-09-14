@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'email', 'first_name', 'last_name']
+        fields = ['id', 'email', 'first_name', 'last_name', 'phone']
         read_only_fields = ['id', 'email']
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -14,7 +14,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['email', 'password', 'first_name', 'last_name']
+        fields = ['email', 'password', 'first_name', 'last_name', 'phone']
 
     def validate_password(self, value):
         # (длина, похожесть на email, частые пароли, только цифры)
