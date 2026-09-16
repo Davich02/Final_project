@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'apps.analytics',
     'apps.core',
     'djmoney',
+    'django_filters',
 ]
 
 MIDDLEWARE = [
