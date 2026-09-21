@@ -10,11 +10,15 @@ class BookingSerializer(serializers.ModelSerializer):
         read_only_fields = ['tenant', 'status']
 
     def validate(self, attrs):
-        # валидация на пересечение дат
         listing = attrs.get('listing')
         date_start = attrs.get('date_start')
         date_end = attrs.get('date_end')
 
+        # дата выезда не может быть раньше или равна дате заезда
+        if date_start and date_end and date_end <= date_start:
+            raise serializers.ValidationError({'date_end': 'Дата выезда должна быть позже даты заезда.'})
+
+        # валидация на пересечение дат
         doubling = Booking.objects.filter(
             listing=listing,
             status__in=[BookingStatus.PENDING, BookingStatus.CONFIRMED],
@@ -26,4 +30,3 @@ class BookingSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Это жильё уже забронировано на выбранные даты.')
 
         return attrs
-
