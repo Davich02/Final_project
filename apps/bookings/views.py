@@ -5,22 +5,60 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from apps.reviews.serializers import ReviewSerializer
 from apps.core.models import BookingStatus
+from apps.listings.models import Listing
+from django.db import transaction
 from django.db.models import Q
 
 
 class BookingViewSet(viewsets.ModelViewSet):
     serializer_class = BookingSerializer
     permission_classes = [IsAuthenticated]
+    # бронь нельзя редактировать или удалять напрямую —
+    # статус меняется только через actions (confirm/reject/complete/cancel)
+    http_method_names = ['get', 'post', 'head', 'options']
 
     def get_queryset(self):
         user = self.request.user
         return Booking.objects.filter(Q(tenant=user) | Q(listing__owner=user))
 
     def perform_create(self, serializer):
-        # tenant подставляется сервером
-        serializer.save(tenant=self.request.user)
+        data = serializer.validated_data
+        # проверка пересечения и создание — в одной транзакции:
+        # select_for_update держит блокировку на объявлении до коммита,
+        # поэтому два одновременных запроса не создадут двойную бронь
+        with transaction.atomic():
+            listing = Listing.objects.select_for_update().get(pk=data['listing'].pk)
+
+            overlap = Booking.objects.filter(
+                listing=listing,
+                status__in=[BookingStatus.PENDING, BookingStatus.CONFIRMED],
+                date_start__lt=data['date_end'],
+                date_end__gt=data['date_start'],
+            ).exists()
+            if overlap:
+                raise ValidationError('Это жильё уже забронировано на выбранные даты.')
+
+            # tenant подставляется сервером
+            serializer.save(tenant=self.request.user)
+
+    @action(detail=True, methods=['post'], url_path='cancel')
+    def cancel(self, request, pk=None):
+        # арендатор отменяет свою бронь, пока она ещё не завершена
+        booking = self.get_object()
+
+        if booking.tenant != request.user:
+            return Response({'detail': 'Это не ваше бронирование.'}, status=status.HTTP_403_FORBIDDEN)
+
+        if booking.status not in [BookingStatus.PENDING, BookingStatus.CONFIRMED]:
+            return Response({'detail': 'Отменить можно только бронь в статусе pending или confirmed.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        booking.status = BookingStatus.CANCELLED
+        booking.save()
+        return Response(BookingSerializer(booking).data)
 
     @action(detail=True, methods=['post'], url_path='review')
     def leave_review(self, request, pk=None):
@@ -90,6 +128,10 @@ class BookingViewSet(viewsets.ModelViewSet):
 
         if booking.status != BookingStatus.CONFIRMED:
             return Response({'detail': 'Завершить можно только подтверждённую бронь.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        if not booking.is_finished:
+            return Response({'detail': 'Завершить можно только после даты выезда.'},
                             status=status.HTTP_400_BAD_REQUEST)
 
         booking.status = BookingStatus.COMPLETED
