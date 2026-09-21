@@ -7,12 +7,16 @@ from rest_framework.response import Response
 from rest_framework import status
 from apps.reviews.serializers import ReviewSerializer
 from apps.core.models import BookingStatus
+from django.db.models import Q
 
 
 class BookingViewSet(viewsets.ModelViewSet):
-    queryset = Booking.objects.all()
     serializer_class = BookingSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return Booking.objects.filter(Q(tenant=user) | Q(listing__owner=user))
 
     def perform_create(self, serializer):
         # tenant подставляется сервером

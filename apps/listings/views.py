@@ -11,6 +11,7 @@ from apps.core.models import BookingStatus
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from decimal import Decimal
+from django.db.models import Q
 
 
 
@@ -18,7 +19,6 @@ from decimal import Decimal
 
 
 class ListingViewSet(viewsets.ModelViewSet):
-    queryset = Listing.objects.all()
     serializer_class = ListingSerializer
     permission_classes = [IsLandlordOrReadOnly]
     pagination_class = ListingPagination
@@ -27,6 +27,12 @@ class ListingViewSet(viewsets.ModelViewSet):
     filterset_class = ListingFilter
     search_fields = ['title', 'description']
     ordering_fields = ['price', 'created_at']
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_authenticated:
+            return Listing.objects.filter(Q(is_active=True) | Q(owner=user))
+        return Listing.objects.filter(is_active=True)
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
