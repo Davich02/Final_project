@@ -12,6 +12,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from decimal import Decimal
 from django.db.models import Q
+from apps.analytics.models import SearchQuery, ListingView
+
 
 
 
@@ -58,6 +60,23 @@ class ListingViewSet(viewsets.ModelViewSet):
             is_active=True
         ).exclude(id=listing.id)[:5]
         return Response(ListingSerializer(similar_listings, many=True).data)
+
+    def list(self, request, *args, **kwargs):
+        search_term = request.query_params.get('search')
+        if search_term:
+            SearchQuery.objects.create(
+                query=search_term,
+                user=request.user if request.user.is_authenticated else None
+            )
+        return super().list(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        ListingView.objects.create(
+            listing=instance,
+            user=request.user if request.user.is_authenticated else None
+        )
+        return super().retrieve(request, *args, **kwargs)
 
 
 
