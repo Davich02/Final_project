@@ -4,9 +4,11 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 
 class UserSerializer(serializers.ModelSerializer):
+    roles = serializers.SlugRelatedField(source='groups', many=True, read_only=True, slug_field='name')
+
     class Meta:
         model = User
-        fields = ['id', 'email', 'first_name', 'last_name', 'phone']
+        fields = ['id', 'email', 'first_name', 'last_name', 'phone', 'roles']
         read_only_fields = ['id', 'email']
 
 class RegisterSerializer(serializers.ModelSerializer):

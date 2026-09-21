@@ -16,19 +16,19 @@ from django.db.models import Q
 class BookingViewSet(viewsets.ModelViewSet):
     serializer_class = BookingSerializer
     permission_classes = [IsAuthenticated]
-    # бронь нельзя редактировать или удалять напрямую —
-    # статус меняется только через actions (confirm/reject/complete/cancel)
+    # без put/patch/delete, статус меняем только через actions
     http_method_names = ['get', 'post', 'head', 'options']
 
     def get_queryset(self):
+        # для swagger
+        if getattr(self, 'swagger_fake_view', False):
+            return Booking.objects.none()
         user = self.request.user
         return Booking.objects.filter(Q(tenant=user) | Q(listing__owner=user))
 
     def perform_create(self, serializer):
         data = serializer.validated_data
-        # проверка пересечения и создание — в одной транзакции:
-        # select_for_update держит блокировку на объявлении до коммита,
-        # поэтому два одновременных запроса не создадут двойную бронь
+        # блокируем объявление, чтобы не было двойной брони при одновременных запросах
         with transaction.atomic():
             listing = Listing.objects.select_for_update().get(pk=data['listing'].pk)
 
@@ -46,7 +46,7 @@ class BookingViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'], url_path='cancel')
     def cancel(self, request, pk=None):
-        # арендатор отменяет свою бронь, пока она ещё не завершена
+        # арендатор отменяет бронь
         booking = self.get_object()
 
         if booking.tenant != request.user:

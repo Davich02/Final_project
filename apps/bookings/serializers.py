@@ -11,8 +11,7 @@ class BookingSerializer(serializers.ModelSerializer):
         read_only_fields = ['tenant', 'status']
 
     def validate(self, attrs):
-        # здесь только проверки, которым не нужна блокировка БД;
-        # пересечение дат проверяется во view внутри транзакции
+        # пересечение дат проверяем во view
         listing = attrs.get('listing')
         date_start = attrs.get('date_start')
         date_end = attrs.get('date_end')
