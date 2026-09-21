@@ -18,12 +18,14 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 from django.conf import settings
 from django.views.static import serve
+from django.views.generic import RedirectView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 
 
 urlpatterns = [
+    path('', RedirectView.as_view(url='/api/docs/')),  # с главной сразу на swagger
     path('admin/', admin.site.urls),
 
     path('api/users/', include('apps.users.urls')),
